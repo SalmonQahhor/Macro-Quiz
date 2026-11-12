@@ -1,0 +1,421 @@
+<!DOCTYPE html>
+<html lang="uz" data-theme="dark">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, viewport-fit=cover">
+    <title>MakroEval — Makroiqtisodiyot Bilimlarini Baholash Tizimi</title>
+    <meta name="description" content="Makroiqtisodiyot fanidan akademik test, imtihon simulyatsiyasi va o'zlashtirish tahlili platformasi">
+    <meta name="theme-color" content="#090d16" id="meta-theme-color">
+
+    <!-- Theme Initialization -->
+    <script>
+        (function() {
+            try {
+                const saved = localStorage.getItem('makro_theme_v1');
+                const prefersDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
+                const theme = saved || (prefersDark ? 'dark' : 'light');
+                document.documentElement.setAttribute('data-theme', theme);
+            } catch (e) {}
+        })();
+    </script>
+
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;600;700&display=swap" rel="stylesheet">
+
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+
+    <!-- Styles -->
+    <link rel="stylesheet" href="style.css">
+
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='8' fill='%23059669'/><path d='M8 21l5-5 4 4 7-9' stroke='white' stroke-width='2.5' fill='none' stroke-linecap='round' stroke-linejoin='round'/></svg>">
+</head>
+<body>
+    <div class="layout-wrapper">
+        <!-- Top Navigation Bar -->
+        <header class="main-header">
+            <div class="header-inner">
+                <div class="brand" id="brand-logo" role="button" tabindex="0" title="Bosh sahifaga qaytish">
+                    <div class="logo-mark" aria-hidden="true">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                            <polyline points="22 7 13.5 15.5 8.5 10.5 2 17"></polyline>
+                            <polyline points="16 7 22 7 22 13"></polyline>
+                        </svg>
+                    </div>
+                    <div class="brand-text">
+                        <span class="brand-name">MakroEval</span>
+                        <span class="brand-sub">Makroiqtisodiyot Assessment</span>
+                    </div>
+                </div>
+
+                <div class="header-right">
+                    <!-- Navigation Tabs -->
+                    <nav class="nav-tabs" aria-label="Asosiy bo'limlar">
+                        <button class="nav-tab active" id="tab-btn-home" data-target="home">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5v-15A2.5 2.5 0 0 1 6.5 2H20v20H6.5a2.5 2.5 0 0 1 0-5H20"/></svg>
+                            <span>Testlar</span>
+                        </button>
+                        <button class="nav-tab" id="tab-btn-stats" data-target="stats">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
+                            <span>Statistika</span>
+                        </button>
+                    </nav>
+
+                    <!-- Theme Toggle (Kunduz / Tun) -->
+                    <button class="theme-toggle" id="btn-theme-toggle" type="button" aria-label="Mavzuni o'zgartirish" title="Tun / Kunduz rejimi">
+                        <svg class="icon-sun" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <circle cx="12" cy="12" r="4"/><path d="M12 2v2"/><path d="M12 20v2"/><path d="m4.93 4.93 1.41 1.41"/><path d="m17.66 17.66 1.41 1.41"/><path d="M2 12h2"/><path d="M20 12h2"/><path d="m6.34 17.66-1.41 1.41"/><path d="m19.07 4.93-1.41 1.41"/>
+                        </svg>
+                        <svg class="icon-moon" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z"/>
+                        </svg>
+                        <span class="theme-label" id="theme-label-text">Tun</span>
+                    </button>
+                </div>
+            </div>
+        </header>
+
+        <main class="wrap">
+            <!-- SECTION 0: FILE LOADER / FALLBACK VIEW -->
+            <section id="loader-view" class="view hide">
+                <div class="surface-card loader-card">
+                    <div class="loader-badge">Ma'lumotlar bazasi ulanmagan</div>
+                    <h2>Savollar faylini yuklang</h2>
+                    <p id="loader-msg">Brauzer lokal fayl cheklovi (<code>file://</code>) sababli <code>questions.JSON</code> avtomatik o'qilmadi. Quyidagi tugma orqali faylni tanlang yoki lokal HTTP serverdan foydalaning.</p>
+                    <div class="loader-actions">
+                        <label class="btn btn-primary" style="cursor:pointer;">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+                            questions.JSON faylini tanlash
+                            <input type="file" id="json-file-input" accept=".json,.JSON,application/json" hidden>
+                        </label>
+                    </div>
+                    <div class="terminal-hint">
+                        <span>Lokal server orqali ishga tushirish:</span>
+                        <code>python -m http.server 8000</code>
+                    </div>
+                </div>
+            </section>
+
+            <!-- SECTION 1: HOME (TESTLAR) -->
+            <section id="home" class="view hide">
+                <div class="page-intro">
+                    <div class="intro-meta">
+                        <span class="status-dot"></span>
+                        <span>Makroiqtisodiyot fani &bull; Akademik test bazasi</span>
+                    </div>
+                    <h1>Bilimlarni baholash va imtihon tayyorgarligi</h1>
+                    <p>Mavzulashtirilgan bloklar bo‘yicha mashq qiling, vaqtli imtihon simulyatsiyasidan o‘ting va xatolar tahlili orqali o‘zlashtirish darajangizni oshiring.</p>
+                </div>
+
+                <!-- KPI Summary Row -->
+                <div class="stats-grid" id="main-stats"></div>
+
+                <!-- Test Modes -->
+                <div class="section-header">
+                    <div>
+                        <h2>Sinov rejimlari</h2>
+                        <p class="section-desc">Tayyorgarlik maqsadingizga mos keluvchi formatni tanlang</p>
+                    </div>
+                </div>
+
+                <div class="modes-grid">
+                    <button class="mode-card" id="btn-mode-all">
+                        <div class="mc-top">
+                            <div class="mc-icon-wrap primary">
+                                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/></svg>
+                            </div>
+                            <span class="mc-tag">To‘liq baza</span>
+                        </div>
+                        <h3>To‘liq mashq rejimi</h3>
+                        <p id="desc-all">Barcha savollar ketma-ketligi. Har bir javobdan so‘ng darhol to‘g‘ri variant ko‘rsatiladi.</p>
+                        <div class="mc-footer">
+                            <span>Boshlash</span>
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+                        </div>
+                    </button>
+
+                    <button class="mode-card" id="btn-mode-rnd">
+                        <div class="mc-top">
+                            <div class="mc-icon-wrap emerald">
+                                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+                            </div>
+                            <span class="mc-tag emerald">Vaqtli nazorat</span>
+                        </div>
+                        <h3>Imtihon simulyatsiyasi</h3>
+                        <p>25 ta tasodifiy savol va 25 daqiqalik qat’iy taymer. Yakuniy natija va tahlil test oxirida taqdim etiladi.</p>
+                        <div class="mc-footer">
+                            <span>Imtihonni boshlash</span>
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+                        </div>
+                    </button>
+
+                    <button class="mode-card danger-accent" id="btn-mode-fix" style="display: none;">
+                        <div class="mc-top">
+                            <div class="mc-icon-wrap danger">
+                                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg>
+                            </div>
+                            <span class="mc-tag danger">Korreksiya</span>
+                        </div>
+                        <h3>Xatolar ustida ishlash</h3>
+                        <p id="desc-fix">Oxirgi urinishda xato qilingan savollarni qayta yechib, bo‘shliqlarni yoping.</p>
+                        <div class="mc-footer">
+                            <span>Qayta ishlash</span>
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+                        </div>
+                    </button>
+                </div>
+
+                <!-- Blocks Grid -->
+                <div class="section-header">
+                    <div>
+                        <h2>Bloklar kesimida (30 tadan savol)</h2>
+                        <p class="section-desc">Har bir blok bo‘yicha eng yuqori natijangiz avtomatik saqlanadi</p>
+                    </div>
+                </div>
+                <div class="blocks-grid" id="blocks-container"></div>
+            </section>
+
+            <!-- SECTION 2: STATISTIKA -->
+            <section id="stats" class="view hide">
+                <div class="dashboard-header">
+                    <div>
+                        <h2>O‘zlashtirish statistikasi</h2>
+                        <p class="dashboard-sub">Urinishlar dinamikasi, bloklar ko‘rsatkichi va batafsil tarix</p>
+                    </div>
+                    <div class="dashboard-actions">
+                        <button class="btn btn-outline btn-sm" id="btn-export-stats">
+                            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+                            JSON Eksport
+                        </button>
+                        <button class="btn btn-danger-outline btn-sm" id="btn-reset-stats">
+                            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
+                            Tarixni tozalash
+                        </button>
+                    </div>
+                </div>
+
+                <!-- KPI Strip -->
+                <div class="kpi-banner surface-card">
+                    <div class="kpi-item">
+                        <span class="kpi-label">Jami urinishlar</span>
+                        <span class="kpi-num" id="st-total-attempts">0</span>
+                    </div>
+                    <div class="kpi-divider"></div>
+                    <div class="kpi-item">
+                        <span class="kpi-label">O‘rtacha aniqlik</span>
+                        <span class="kpi-num text-emerald" id="st-avg-score">0%</span>
+                    </div>
+                    <div class="kpi-divider"></div>
+                    <div class="kpi-item">
+                        <span class="kpi-label">Eng yuqori natija</span>
+                        <span class="kpi-num text-blue" id="st-best-score">0%</span>
+                    </div>
+                    <div class="kpi-divider"></div>
+                    <div class="kpi-item">
+                        <span class="kpi-label">Umumiy sarflangan vaqt</span>
+                        <span class="kpi-num" id="st-total-time">0 daq</span>
+                    </div>
+                </div>
+
+                <!-- Analytics Charts -->
+                <div class="charts-main-grid">
+                    <div class="surface-card chart-card wide-chart">
+                        <div class="chart-header">
+                            <h3>Urinishlar natijalari dinamikasi (%)</h3>
+                            <span class="chart-badge">Oxirgi 15 urinish</span>
+                        </div>
+                        <div class="chart-container">
+                            <canvas id="statTrendChart"></canvas>
+                        </div>
+                    </div>
+
+                    <div class="surface-card chart-card">
+                        <div class="chart-header">
+                            <h3>Bloklar bo‘yicha aniqlik (%)</h3>
+                            <span class="chart-badge">Eng yaxshi ko‘rsatkich</span>
+                        </div>
+                        <div class="chart-container">
+                            <canvas id="statBlockChart"></canvas>
+                        </div>
+                    </div>
+
+                    <div class="surface-card chart-card">
+                        <div class="chart-header">
+                            <h3>Javoblar taqsimoti</h3>
+                            <span class="chart-badge">Umumiy nisbat</span>
+                        </div>
+                        <div class="chart-container doughnut-box">
+                            <canvas id="statDistributionChart"></canvas>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Block Progress Breakdown -->
+                <div class="surface-card detail-section">
+                    <div class="section-subhead">
+                        <h3>Bloklar bo‘yicha o‘zlashtirish holati</h3>
+                    </div>
+                    <div class="block-progress-list" id="stats-blocks-detail"></div>
+                </div>
+
+                <!-- Attempt History Table -->
+                <div class="surface-card history-section">
+                    <div class="section-subhead">
+                        <h3>Test topshirish tarixi</h3>
+                    </div>
+                    <div class="table-responsive">
+                        <table class="history-table">
+                            <thead>
+                                <tr>
+                                    <th>№</th>
+                                    <th>Rejim / Bo‘lim</th>
+                                    <th>Sana va vaqt</th>
+                                    <th>Davomiylik</th>
+                                    <th>Natija</th>
+                                    <th>Aniqlik</th>
+                                </tr>
+                            </thead>
+                            <tbody id="history-table-body"></tbody>
+                        </table>
+                    </div>
+                </div>
+            </section>
+
+            <!-- SECTION 3: QUIZ INTERFACE -->
+            <section id="quiz" class="view hide">
+                <div class="quiz-top-bar surface-card">
+                    <div class="qb-info">
+                        <span class="qb-label">Joriy sinov</span>
+                        <h3 class="qb-title" id="quiz-title">Test Nomi</h3>
+                    </div>
+                    <div class="qb-controls">
+                        <div class="qh-timer" id="quiz-timer">00:00</div>
+                        <button class="btn btn-outline btn-sm" id="btn-exit">Chiqish</button>
+                    </div>
+                </div>
+
+                <!-- Linear Progress -->
+                <div class="progress-wrapper" role="progressbar" aria-valuemin="0" aria-valuemax="100">
+                    <div class="progress-bar-fill" id="quiz-progress"></div>
+                </div>
+
+                <!-- Question Container -->
+                <div class="question-card surface-card">
+                    <div class="q-header-meta">
+                        <span class="q-num-pill" id="q-counter">SAVOL 1 / 30</span>
+                        <span class="kbd-hint">Klaviatura: A–D / ← →</span>
+                    </div>
+                    <h2 class="q-text" id="q-text">Savol matni yuklanmoqda...</h2>
+
+                    <div class="options-list" id="options-list"></div>
+                </div>
+
+                <!-- Quiz Navigation (Sticky thumb-bar on mobile) -->
+                <div class="quiz-nav">
+                    <button class="btn btn-outline" id="btn-prev">← Oldingi</button>
+                    <button class="btn btn-primary" id="btn-next">Keyingi →</button>
+                </div>
+
+                <!-- Question Matrix Map -->
+                <div class="surface-card map-card">
+                    <div class="map-header">
+                        <span>Savollar xaritasi</span>
+                        <span class="map-legend">
+                            <span><i class="dot-lgd ok"></i> To‘g‘ri</span>
+                            <span><i class="dot-lgd bad"></i> Xato</span>
+                            <span><i class="dot-lgd ans"></i> Belgilangan</span>
+                        </span>
+                    </div>
+                    <div class="question-map" id="question-map"></div>
+                </div>
+            </section>
+
+            <!-- SECTION 4: RESULTS & REVIEW -->
+            <section id="result" class="view hide">
+                <div class="surface-card result-hero-card">
+                    <div class="result-hero-grid">
+                        <div class="donut-wrapper">
+                            <canvas id="scoreChart"></canvas>
+                            <div class="donut-score-text" id="score-percent">0%</div>
+                        </div>
+                        <div class="result-info">
+                            <span class="result-badge">Yakuniy hisobot</span>
+                            <h2 id="res-greeting">Natija hisoblandi</h2>
+                            <p id="res-msg">Siz mazkur bo‘lim bo‘yicha testni yakunladingiz.</p>
+
+                            <div class="kpi-grid">
+                                <div class="kpi-box success">
+                                    <span class="kpi-lbl">To‘g‘ri</span>
+                                    <span class="kpi-val" id="kpi-correct">0</span>
+                                </div>
+                                <div class="kpi-box danger">
+                                    <span class="kpi-lbl">Xato</span>
+                                    <span class="kpi-val" id="kpi-wrong">0</span>
+                                </div>
+                                <div class="kpi-box warning">
+                                    <span class="kpi-lbl">O‘tkazilgan</span>
+                                    <span class="kpi-val" id="kpi-skipped">0</span>
+                                </div>
+                                <div class="kpi-box info">
+                                    <span class="kpi-lbl">Sarflangan vaqt</span>
+                                    <span class="kpi-val" id="kpi-time">00:00</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Result Charts -->
+                <div class="charts-row">
+                    <div class="surface-card chart-panel">
+                        <h3>So‘nggi urinishlar dinamikasi</h3>
+                        <div class="chart-wrapper">
+                            <canvas id="resTrendChart"></canvas>
+                        </div>
+                    </div>
+                    <div class="surface-card chart-panel">
+                        <h3>Bo‘limlar kesimidagi aniqlik</h3>
+                        <div class="chart-wrapper">
+                            <canvas id="resBarChart"></canvas>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Actions -->
+                <div class="action-buttons">
+                    <button class="btn btn-primary" id="btn-retry">Qayta topshirish</button>
+                    <button class="btn btn-emerald" id="btn-fix-errors" style="display: none;">Xatolar ustida ishlash</button>
+                    <button class="btn btn-outline" id="btn-view-full-stats">To‘liq statistika</button>
+                    <button class="btn btn-outline" id="btn-home">Bosh sahifa</button>
+                </div>
+
+                <!-- Error Analysis -->
+                <div class="surface-card errors-section">
+                    <div class="errors-header">
+                        <h3>Xatolar va o‘tkazilgan savollar tahlili</h3>
+                        <div class="filter-tabs" id="error-filters">
+                            <button class="ft-btn active" data-filter="all">Barchasi (<span id="fc-all">0</span>)</button>
+                            <button class="ft-btn" data-filter="wrong">Xato (<span id="fc-wrong">0</span>)</button>
+                            <button class="ft-btn" data-filter="skipped">O‘tkazilgan (<span id="fc-skipped">0</span>)</button>
+                        </div>
+                    </div>
+                    <div class="errors-list" id="errors-container"></div>
+                </div>
+            </section>
+        </main>
+
+        <footer class="footer">
+            <div class="footer-content">
+                <span>MakroEval &mdash; Makroiqtisodiyot Akademik Test Platformasi</span>
+                <span class="copyright">SalmonCS &bull; 2026</span>
+            </div>
+        </footer>
+    </div>
+
+    <!-- Optional questions.js fallback for local file:// protocol -->
+    <script src="questions.js" onerror="window.__no_q_js=true"></script>
+    <script src="app.js"></script>
+</body>
+</html>
