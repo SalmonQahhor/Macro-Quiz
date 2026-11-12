@@ -2,6 +2,7 @@
 
 const state = {
     questions: [],
+    sessionQuestions: [],
     activeTab: 'home',
     modeTitle: '',
     indices: [],
@@ -91,7 +92,27 @@ const Theme = {
 // DOM Helpers
 const el = (id) => document.getElementById(id);
 const formatTime = (sec) => `${String(Math.floor(sec/60)).padStart(2,'0')}:${String(sec%60).padStart(2,'0')}`;
-const shuffle = (arr) => [...arr].sort(() => Math.random() - 0.5);
+const shuffle = (arr) => {
+    const copy = [...arr];
+    for (let i = copy.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [copy[i], copy[j]] = [copy[j], copy[i]];
+    }
+    return copy;
+};
+
+function buildShuffledQuestion(q) {
+    const paired = q[1].map((text, idx) => ({
+        text: String(text).replace(/^[A-Da-d][\)\.]\s+/, ''),
+        isCorrect: idx === q[2]
+    }));
+    const mixed = shuffle(paired);
+    return [
+        q[0],
+        mixed.map(item => item.text),
+        mixed.findIndex(item => item.isCorrect)
+    ];
+}
 const escapeHTML = (str) => String(str).replace(/[&<>]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;'}[c]));
 const L = ['A', 'B', 'C', 'D'];
 
@@ -473,6 +494,7 @@ function renderAnalyticsCharts(history, bestBlocks, nBlocks) {
 function startQuiz(title, indices, isFeedbackMode, limitSeconds, runKey) {
     state.modeTitle = title;
     state.indices = indices;
+    state.sessionQuestions = indices.map(idx => buildShuffledQuestion(state.questions[idx]));
     state.answers = indices.map(() => -1);
     state.currentIdx = 0;
     state.isFeedbackMode = isFeedbackMode;
@@ -509,7 +531,7 @@ function updateTimer() {
 }
 
 function renderQuestion() {
-    const qData = state.questions[state.indices[state.currentIdx]];
+    const qData = state.sessionQuestions[state.currentIdx];
     const currentAns = state.answers[state.currentIdx];
     const total = state.indices.length;
 
@@ -548,7 +570,7 @@ function renderQuestion() {
         if (i === state.currentIdx) c += ' active';
         if (v !== -1) {
             if (state.isFeedbackMode) {
-                c += v === state.questions[state.indices[i]][2] ? ' correct' : ' wrong';
+                c += v === state.sessionQuestions[i][2] ? ' correct' : ' wrong';
             } else {
                 c += ' ans';
             }
@@ -619,7 +641,7 @@ function finishQuiz(force) {
 
     const resArray = state.answers.map((ans, i) => {
         if(ans === -1) { s++; badIndices.push(state.indices[i]); return -1; }
-        const isCorr = ans === state.questions[state.indices[i]][2];
+        const isCorr = ans === state.sessionQuestions[i][2];
         if(isCorr) { c++; return 1; }
         w++; badIndices.push(state.indices[i]); return 0;
     });
@@ -666,7 +688,7 @@ function renderResultView(data) {
             if(filter === 'skipped' && status !== -1) return;
 
             const realQIdx = state.indices[i];
-            const qData = state.questions[realQIdx];
+            const qData = state.sessionQuestions[i];
             const userAns = state.answers[i];
             const corrAns = qData[2];
 
